@@ -4,18 +4,29 @@ import math
 
 
 class Player(pygame.sprite.Sprite):
-    idle = 0
-    walking = 1
+    IDLE = 0
+    PUNCH = 1
+    WALKING = 2
+    WEAPONS = 3
+    DEATH = 4
 
-    def __init__(self, sheet):
+    def __init__(self, sheet, x, y):
         super().__init__(player_group, all_sprites)
-        self.state = self.idle
+        self.state = self.IDLE
+        self.states_imgs = {
+            self.IDLE: 1,
+            self.PUNCH: 4,
+            self.WALKING: 4,
+            self.WEAPONS: 5,
+            self.DEATH: 2
+        }
         self.frames = {}
-        self.cut_sheet(sheet, 6, 1)
+        self.cut_sheet(sheet, 5, 5)
         self.cur_frame = 0
         self.image = self.frames[self.state][self.cur_frame]
 
-        self.rect = self.rect.move((WIDTH - self.rect.w) // 2, (HEIGHT - self.rect.h) // 2)
+        self.rect = self.rect.move(x * PLAYER_SIZE[0], y * PLAYER_SIZE[1])
+        self.mask = pygame.mask.from_surface(self.image)
 
         self.i = 1
         self.mouse_pos = (0, 0)
@@ -24,19 +35,15 @@ class Player(pygame.sprite.Sprite):
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
                                 sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
-                if i == 0:
-                    if not self.frames.get(self.idle, False):
-                        self.frames[self.idle] = []
-                    self.frames[self.idle].append(sheet.subsurface(pygame.Rect(
-                        frame_location, self.rect.size)))
-                elif i >= 1:
-                    if not self.frames.get(self.walking, False):
-                        self.frames[self.walking] = []
-                    self.frames[self.walking].append(sheet.subsurface(pygame.Rect(
-                        frame_location, self.rect.size)))
+        ix = 0
+        for key, value in self.states_imgs.items():
+            for col in range(value):
+                if not self.frames.get(key, False):
+                    self.frames[key] = []
+                # image = pygame.transform.scale(sheet.subsurface(pygame.Rect((self.rect.w * col, self.rect.h * ix), self.rect.size)), PLAYER_SIZE)
+                image = sheet.subsurface(pygame.Rect((self.rect.w * col, self.rect.h * ix), self.rect.size))
+                self.frames[key].append(image)
+            ix += 1
 
     def update(self, mouse_pos):
         if self.i == 3:
@@ -52,4 +59,40 @@ class Player(pygame.sprite.Sprite):
         image = pygame.transform.rotate(image, self.angle)
         self.rect = image.get_rect(center=self.rect.center)
         return image
+
+    def move(self, key, mouse_pos):
+        self.state = self.WALKING
+        vec = pygame.Vector2(mouse_pos)
+        pos = pygame.Vector2(self.rect.topleft)
+        move = vec - pos
+        if move.length() != 0:
+            move.normalize_ip()
+            if key == pygame.K_w:
+                pos += move * SPEED
+            elif key == pygame.K_s:
+                pos -= move * SPEED
+            self.rect.x = int(pos[0])
+            # self.collide_with_walls('x', pos, move)
+            self.rect.y = int(pos[1])
+            # self.collide_with_walls('y', pos, move)
+
+    def collide_with_walls(self, direction, pos, move):
+        if direction == 'x':
+            hits = pygame.sprite.spritecollide(self, walls_group, False)
+            print(hits)
+            if hits:
+                if move[0] > 0:
+                    pos[0] = hits[0].rect.left - self.rect.width
+                if move[0] < 0:
+                    pos[0] = hits[0].rect.right
+                self.rect.x = pos[0]
+        if direction == 'y':
+            hits = pygame.sprite.spritecollide(self, walls_group, False)
+            print(hits)
+            if hits:
+                if move[1] > 0:
+                    pos[1] = hits[0].rect.top - self.rect.h
+                if move[1] < 0:
+                    pos[1] = hits[0].rect.bottom
+                self.rect.y = pos[1]
 
