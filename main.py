@@ -13,6 +13,9 @@ pygame.display.set_caption('ColdLine Manhattan')
 
 
 def load_image(name, color_key=None):
+    """Загружает картинку, если она существует
+        Если ставить color_key=-1, то убирает фон картинки
+    """
     fullname = os.path.join('data', 'imgs', name)
     try:
         image = pygame.image.load(fullname).convert()
@@ -30,6 +33,7 @@ def load_image(name, color_key=None):
 
 
 def load_level(filename):
+    """Загружает уровень из текстового файла"""
     filename = os.path.join('data', 'maps', filename)
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
@@ -48,8 +52,10 @@ def terminate():
 
 
 def start_screen():
+    """Показывает начальный экран"""
     screen.fill(pygame.Color(0, 0, 0))
     font = pygame.font.Font(None, 30)
+    # Текст "START"
     _start = font.render('START', 1, pygame.Color('white'))
     _start_rect = _start.get_rect()
     _start_rect.x = (WIDTH - _start_rect.width) // 2
@@ -57,6 +63,7 @@ def start_screen():
 
     screen.blit(_start, _start_rect)
 
+    # Кнопка загрузки игры
     _button = pygame.Rect(
         (WIDTH - 150) // 2, (HEIGHT - 40) // 2,
         150, 40
@@ -67,6 +74,7 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            # Если нажали на кнопку - запустить игру
             elif event.type == pygame.MOUSEBUTTONDOWN and _button.collidepoint(event.pos):
                 return
             pygame.display.flip()
@@ -74,6 +82,7 @@ def start_screen():
 
 
 def generate_level(level_map):
+    """Генерирует уровень, в котором w - стена, . - пустое пространство(пол), @ - игрок"""
     new_player, x, y = None, None, None
     for y in range(len(level_map)):
         for x in range(len(level_map[y])):
@@ -91,15 +100,19 @@ def generate_level(level_map):
 start_screen()
 
 running = True
+# Спрайты игрока
 player_image = load_image('sprite2.png', -1)
-punch_image = load_image('punch.png')
+# Спрайты стены
 wall_image = load_image('new wall.png')
+# Спрайты пола
 floor_image = load_image('floor.png')
-player, a, ad = generate_level(load_level('test_map'))
+player, field_x, field_y = generate_level(load_level('test_map'))
 camera = Camera()
 
 while running:
+    # Делает курсор прицелом
     pygame.mouse.set_cursor(pygame.cursors.broken_x)
+    # Координаты игрока до начала движения
     old_x = player.rect.x
     old_y = player.rect.y
     for event in pygame.event.get():
@@ -117,23 +130,33 @@ while running:
         if event.type == pygame.KEYUP:
             player.state = Player.IDLE
 
+    # Обработка столкновений по маске
     for wall in walls_group:
         if pygame.sprite.collide_mask(player, wall):
             player.rect.x = old_x
             player.rect.y = old_y
 
+    # Обработка столкновений по хитбоксам
     # for tile in pygame.sprite.spritecollide(player, walls_group, False):
     #     player.rect.x = old_x
     #     player.rect.y = old_y
+
     screen.fill(pygame.Color(255, 255, 255))
+
+    # Сдвиг камеры
     camera.update(player)
     for sprite in all_sprites:
         camera.apply(sprite)
+
+    # Отрисовка спрайтов
     walls_group.draw(screen)
     floor_group.draw(screen)
     player_group.draw(screen)
+
+    # Высчитывание поворота игрока
     player.update(pygame.mouse.get_pos())
 
+    # Фпс в углу экрана
     font = pygame.font.Font(None, 30)
     fps = font.render(f'FPS: {int(clock.get_fps())}', 1, pygame.Color('red'))
     fps_rect = fps.get_rect()
