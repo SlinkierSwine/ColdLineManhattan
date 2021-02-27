@@ -5,6 +5,7 @@ from SETTINGS import *
 from player import Player
 from wall import Wall, Floor
 from camera import Camera
+from enemy import Enemy
 
 
 pygame.init()
@@ -93,6 +94,9 @@ def generate_level(level_map):
             elif level_map[y][x] == '@':
                 Floor(x, y, floor_image)
                 new_player = Player(player_image, x, y)
+            elif level_map[y][x] == 'M':
+                Floor(x, y, floor_image)
+                Enemy(enemy_image, x, y)
         # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
@@ -106,6 +110,9 @@ player_image = load_image('sprite2.png', -1)
 wall_image = load_image('new wall.png')
 # Спрайты пола
 floor_image = load_image('floor.png')
+# Спрайты врагов
+enemy_image = load_image('enemies.png')
+
 player, field_x, field_y = generate_level(load_level('test_map'))
 camera = Camera()
 
