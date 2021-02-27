@@ -123,35 +123,30 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
                 terminate()
-            if event.key == pygame.K_w:
-                player.move(pygame.K_w, pygame.mouse.get_pos())
-            if event.key == pygame.K_s:
-                player.move(pygame.K_s, pygame.mouse.get_pos())
         if event.type == pygame.KEYUP:
-            player.state = Player.IDLE
+            player.state = player.IDLE
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == pygame.BUTTON_LEFT:
+                player.state = player.PUNCH
 
-    # Обработка столкновений по маске
-    for wall in walls_group:
-        if pygame.sprite.collide_mask(player, wall):
-            player.rect.x = old_x
-            player.rect.y = old_y
-
-    # Обработка столкновений по хитбоксам
-    # for tile in pygame.sprite.spritecollide(player, walls_group, False):
-    #     player.rect.x = old_x
-    #     player.rect.y = old_y
+    player.move()
 
     screen.fill(pygame.Color(255, 255, 255))
 
     # Сдвиг камеры
     camera.update(player)
     for sprite in all_sprites:
-        camera.apply(sprite)
+        if sprite == player:
+            player.hitbox.x += camera.dx
+            player.hitbox.y += camera.dy
+        else:
+            camera.apply(sprite)
 
     # Отрисовка спрайтов
     walls_group.draw(screen)
     floor_group.draw(screen)
     player_group.draw(screen)
+    pygame.draw.rect(screen, (0, 0, 0), player.hitbox, 2)
 
     # Высчитывание поворота игрока
     player.update(pygame.mouse.get_pos())
@@ -161,6 +156,11 @@ while running:
     fps = font.render(f'FPS: {int(clock.get_fps())}', 1, pygame.Color('red'))
     fps_rect = fps.get_rect()
     screen.blit(fps, fps_rect)
+
+    # Позиция игрока и хитбокса игрока
+    pos = font.render(str(player.hitbox.center + player.rect.topleft), 1, pygame.Color('red'))
+    pos_rect = pos.get_rect()
+    screen.blit(pos, (pos_rect.x + 100, pos_rect.y))
 
     pygame.display.flip()
     clock.tick(FPS)
