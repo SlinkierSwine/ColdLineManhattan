@@ -16,7 +16,13 @@ class Entity(pygame.sprite.Sprite):
     WEAPONS = 3
     DEATH = 4
 
-    def __init__(self, group):
+    # Константы оружия
+    HANDS = 5
+    PISTOL = 6
+    RIFLE = 7
+    SHOTGUN = 8
+
+    def __init__(self, group, bullet_image):
         # Текущее состояние
         super().__init__(group, all_sprites)
         self.state = self.IDLE
@@ -32,6 +38,10 @@ class Entity(pygame.sprite.Sprite):
         self.frames = {}
         # Текущий кадр
         self.cur_frame = 0
+
+        self.hitbox = pygame.Rect(0, 0, *HITBOX_SIZE)
+
+        self.bullet_image = bullet_image
 
         # Текущая итерация главного цикла
         self.i = 1
@@ -54,6 +64,10 @@ class Entity(pygame.sprite.Sprite):
             ix += 1
         # Удар проигрывается сначала в одном направлении, потом обратно
         self.frames[self.PUNCH] += self.frames[self.PUNCH][::-1]
+
+        self.frames[self.PISTOL] = [self.frames[self.WEAPONS][0]]
+        self.frames[self.RIFLE] = [self.frames[self.WEAPONS][2]]
+        self.frames[self.SHOTGUN] = [self.frames[self.WEAPONS][3]]
 
     def update(self, target_pos):
         """Изменяет текущий спрайт на следующий и поворачивает его на нужный угол"""
@@ -107,3 +121,30 @@ class Entity(pygame.sprite.Sprite):
         self.hitbox.centery += self.vy
         self.collide_with_walls('y')
         self.rect.center = self.hitbox.center
+
+    def shoot(self, target_pos, group):
+        bullet = Bullet(self, self.bullet_image, target_pos, group)
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, source, image, target_pos, group):
+        super().__init__(group, all_sprites)
+        self.source = source
+        self.image = pygame.transform.scale(image, BULLET_SIZE)
+        self.rect = self.image.get_rect()
+        self.rect = self.rect.move(*self.source.hitbox.center)
+        self.spawn_time = pygame.time.get_ticks()
+        self.target_pos = target_pos
+
+    def update(self):
+        if pygame.time.get_ticks() - self.spawn_time > BULLET_LIFETIME:
+            self.kill()
+            return False
+        else:
+            vec = pygame.Vector2
+            rot = (vec(self.target_pos) - vec(self.source.hitbox.center)).angle_to(vec(1, 0))
+            vel = vec(BEAM_SPEED, 0).rotate(-rot)
+            self.rect.x += vel.x
+            self.rect.y += vel.y
+            if pygame.sprite.spritecollideany(self, walls_group):
+                self.kill()

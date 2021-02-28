@@ -6,6 +6,7 @@ from player import Player
 from wall import Wall, Floor
 from camera import Camera
 from enemy import Enemy
+from map import Map
 
 
 pygame.init()
@@ -13,11 +14,11 @@ pygame.key.set_repeat(1, 25)
 pygame.display.set_caption('ColdLine Manhattan')
 
 
-def load_image(name, color_key=None):
+def load_image(*name, color_key=None):
     """Загружает картинку, если она существует
         Если ставить color_key=-1, то убирает фон картинки
     """
-    fullname = os.path.join('data', 'imgs', name)
+    fullname = os.path.join('data', 'imgs', *name)
     try:
         image = pygame.image.load(fullname).convert()
     except pygame.error as message:
@@ -54,7 +55,7 @@ def terminate():
 
 def start_screen():
     """Показывает начальный экран"""
-    bg = load_image('background.jpg')
+    bg = load_image('background', 'background.jpg')
     screen.blit(bg, bg.get_rect())
     font = pygame.font.Font(None, 50)
     # Текст "START"
@@ -104,10 +105,10 @@ def generate_level(level_map):
                 Floor(x, y, floor_image)
             elif level_map[y][x] == '@':
                 Floor(x, y, floor_image)
-                new_player = Player(player_image, x, y)
+                new_player = Player(player_image, x, y, bullet_image)
             elif level_map[y][x] == 'M':
                 Floor(x, y, floor_image)
-                Enemy(enemy_image, x, y, new_player)
+                Enemy(enemy_image, x, y, new_player, Enemy.PISTOL, bullet_image)
         # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
@@ -116,20 +117,36 @@ start_screen()
 
 running = True
 # Спрайты игрока
-player_image = load_image('sprite2.png', -1)
+player_image = load_image('entity', 'sprite2.png', color_key=-1)
 # Спрайты стены
 wall_image = load_image('new wall.png')
 # Спрайты пола
 floor_image = load_image('floor.png')
 # Спрайты врагов
-enemy_image = load_image('enemies.png', -1)
+enemy_image = load_image('entity', 'enemies.png', color_key=-1)
+# Спрайт пули
+bullet_image = load_image('entity', 'bullet.png')
 
-player, field_x, field_y = generate_level(load_level('test_map'))
+new_map = Map(os.path.join('data', 'maps', 'map.tmx'))
+map_img = new_map.make_map()
+map_rect = map_img.get_rect()
+
+player = Player(player_image, 10, 10, bullet_image)
+
+# player, field_x, field_y = generate_level(load_level('test_map'))
+for enemy in enemies_group:
+    enemy.player = player
 camera = Camera()
 
 while running:
     # Делает курсор прицелом
-    pygame.mouse.set_cursor(pygame.cursors.broken_x)
+    try:
+        pygame.mouse.set_cursor(pygame.cursors.broken_x)
+    except:
+        pygame.mouse.set_cursor(pygame.cursors.arrow)
+    wasd_arrows_keys = [pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d,
+                        pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_UP]
+    keys = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -140,6 +157,9 @@ while running:
                 terminate()
         if event.type == pygame.KEYUP:
             player.state = player.IDLE
+        if event.type == pygame.MOUSEBUTTONDOWN and player.weapon == player.PISTOL or player.weapon == player.RIFLE:
+            player.state = player.PISTOL
+            player.shoot(pygame.mouse.get_pos(), player_bullets_group)
 
     player.move()
 
@@ -151,27 +171,40 @@ while running:
     # Сдвиг камеры
     camera.update(player)
     for sprite in all_sprites:
-        if sprite.__class__ == Player:
+        if isinstance(sprite, Player):
             player.hitbox.x += camera.dx
             player.hitbox.y += camera.dy
-        elif sprite.__class__ == Enemy:
+        elif isinstance(sprite, Enemy):
             sprite.hitbox.x += camera.dx
             sprite.hitbox.y += camera.dy
         else:
             camera.apply(sprite)
+
+    camera.apply_rect(map_rect)
+    screen.blit(map_img, map_rect)
+
+    hits = pygame.sprite.groupcollide(enemies_group, player_bullets_group, False, True)
+    for hit in hits:
+        hit.kill()
 
     # Отрисовка спрайтов
     walls_group.draw(screen)
     floor_group.draw(screen)
     player_group.draw(screen)
     enemies_group.draw(screen)
+    player_bullets_group.draw(screen)
+    enemies_bullets_group.draw(screen)
     pygame.draw.rect(screen, (0, 0, 0), player.hitbox, 2)
     for e in enemies_group:
         pygame.draw.rect(screen, (0, 0, 0), e.hitbox, 2)
+    for b in beam_group:
+        pygame.draw.rect(screen, (0, 0, 0), b.rect)
 
     # Высчитывание поворота игрока
     player.update(pygame.mouse.get_pos())
     enemies_group.update(player.rect.center)
+    player_bullets_group.update()
+    enemies_bullets_group.update()
 
     # Фпс в углу экрана
     font = pygame.font.Font(None, 30)
@@ -180,7 +213,7 @@ while running:
     screen.blit(fps, fps_rect)
 
     # Позиция игрока и хитбокса игрока
-    pos = font.render(str(player.hitbox.center + player.rect.topleft), 1, pygame.Color('red'))
+    pos = font.render(str(map_rect), 1, pygame.Color('red'))
     pos_rect = pos.get_rect()
     screen.blit(pos, (pos_rect.x + 100, pos_rect.y))
 

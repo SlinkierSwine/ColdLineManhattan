@@ -13,6 +13,10 @@ class Camera:
         obj.rect.x += self.dx
         obj.rect.y += self.dy
 
+    def apply_rect(self, rect):
+        rect.x += self.dx
+        rect.y += self.dy
+
     def update(self, target):
         """Позиционирует камеру на объекте target"""
         self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)

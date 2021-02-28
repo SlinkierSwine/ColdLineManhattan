@@ -30,8 +30,8 @@ class Beam(pygame.sprite.Sprite):
 
 
 class Enemy(Entity):
-    def __init__(self, sheet, x, y, player):
-        super().__init__(enemies_group)
+    def __init__(self, sheet, x, y, player, weapon, bullet_image):
+        super().__init__(enemies_group, bullet_image)
 
         # Спрайт моба
         self.cut_sheet(sheet, 5, 5)
@@ -39,12 +39,12 @@ class Enemy(Entity):
         self.rect = self.rect.move(x * TILE_SIZE[0], y * TILE_SIZE[1])
 
         # Хитбокс моба
-        self.hitbox = pygame.Rect(0, 0, 50, 50)
         self.hitbox.center = self.rect.center
 
         self.player = player
         self.beam = Beam(self)
         self.player_already_detected = False
+        self.weapon = weapon
 
     def change_velocity(self):
         vec = pygame.Vector2
@@ -61,13 +61,19 @@ class Enemy(Entity):
                     self.change_velocity()
                     self.state = self.WALKING
                     self.player_already_detected = True
-                    self.beam = None
                 else:
                     self.vx = self.vy = 0
                     self.state = self.IDLE
                 self.beam = Beam(self)
             super().move()
         else:
+            if self.weapon in [self.PISTOL, self.RIFLE, self.SHOTGUN]:
+                player_detected = self.beam.detect_player()
+                if player_detected is not None:
+                    if player_detected:
+                        self.state = self.PISTOL
+                        self.shoot(self.player.hitbox.center, enemies_bullets_group)
+                    self.beam = Beam(self)
             self.change_velocity()
             self.state = self.WALKING
             super().move()
