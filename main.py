@@ -54,22 +54,33 @@ def terminate():
 
 def start_screen():
     """Показывает начальный экран"""
-    screen.fill(pygame.Color(0, 0, 0))
-    font = pygame.font.Font(None, 30)
+    bg = load_image('background.jpg')
+    screen.blit(bg, bg.get_rect())
+    font = pygame.font.Font(None, 50)
     # Текст "START"
     _start = font.render('START', 1, pygame.Color('white'))
     _start_rect = _start.get_rect()
-    _start_rect.x = (WIDTH - _start_rect.width) // 2
-    _start_rect.y = (HEIGHT - _start_rect.height) // 2 - 60
+    _start_rect.x = 200
+    _start_rect.y = (HEIGHT - _start_rect.height) // 2
 
+    _start_shadow = font.render('START', 1, pygame.Color('black'))
+    _start_shadow_rect = _start_shadow.get_rect()
+    _start_shadow_rect.x = _start_rect.x + 2
+    _start_shadow_rect.y = _start_rect.y + 2
+
+    screen.blit(_start_shadow, _start_shadow_rect)
     screen.blit(_start, _start_rect)
 
     # Кнопка загрузки игры
     _button = pygame.Rect(
-        (WIDTH - 150) // 2, (HEIGHT - 40) // 2,
+        180, (HEIGHT - 40) // 2 + 60,
         150, 40
     )
-    pygame.draw.rect(screen, [255, 255, 255], _button)
+    _button_shadow = pygame.Rect(
+        (_button.x + 5, _button.y + 5), _button.size
+    )
+    pygame.draw.rect(screen, pygame.Color('black'), _button_shadow)
+    pygame.draw.rect(screen, pygame.Color('white'), _button)
 
     while True:
         for event in pygame.event.get():
@@ -96,7 +107,7 @@ def generate_level(level_map):
                 new_player = Player(player_image, x, y)
             elif level_map[y][x] == 'M':
                 Floor(x, y, floor_image)
-                Enemy(enemy_image, x, y)
+                Enemy(enemy_image, x, y, new_player)
         # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
@@ -111,7 +122,7 @@ wall_image = load_image('new wall.png')
 # Спрайты пола
 floor_image = load_image('floor.png')
 # Спрайты врагов
-enemy_image = load_image('enemies.png')
+enemy_image = load_image('enemies.png', -1)
 
 player, field_x, field_y = generate_level(load_level('test_map'))
 camera = Camera()
@@ -119,9 +130,6 @@ camera = Camera()
 while running:
     # Делает курсор прицелом
     pygame.mouse.set_cursor(pygame.cursors.broken_x)
-    # Координаты игрока до начала движения
-    old_x = player.rect.x
-    old_y = player.rect.y
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -132,20 +140,23 @@ while running:
                 terminate()
         if event.type == pygame.KEYUP:
             player.state = player.IDLE
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == pygame.BUTTON_LEFT:
-                player.state = player.PUNCH
 
     player.move()
+
+    for enemy in enemies_group:
+        enemy.move()
 
     screen.fill(pygame.Color(255, 255, 255))
 
     # Сдвиг камеры
     camera.update(player)
     for sprite in all_sprites:
-        if sprite == player:
+        if sprite.__class__ == Player:
             player.hitbox.x += camera.dx
             player.hitbox.y += camera.dy
+        elif sprite.__class__ == Enemy:
+            sprite.hitbox.x += camera.dx
+            sprite.hitbox.y += camera.dy
         else:
             camera.apply(sprite)
 
@@ -153,10 +164,14 @@ while running:
     walls_group.draw(screen)
     floor_group.draw(screen)
     player_group.draw(screen)
+    enemies_group.draw(screen)
     pygame.draw.rect(screen, (0, 0, 0), player.hitbox, 2)
+    for e in enemies_group:
+        pygame.draw.rect(screen, (0, 0, 0), e.hitbox, 2)
 
     # Высчитывание поворота игрока
     player.update(pygame.mouse.get_pos())
+    enemies_group.update(player.rect.center)
 
     # Фпс в углу экрана
     font = pygame.font.Font(None, 30)
