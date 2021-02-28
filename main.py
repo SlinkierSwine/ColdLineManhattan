@@ -119,9 +119,9 @@ running = True
 # Спрайты игрока
 player_image = load_image('entity', 'sprite2.png', color_key=-1)
 # Спрайты стены
-wall_image = load_image('new wall.png')
+# wall_image = load_image('new wall.png')
 # Спрайты пола
-floor_image = load_image('floor.png')
+# floor_image = load_image('floor.png')
 # Спрайты врагов
 enemy_image = load_image('entity', 'enemies.png', color_key=-1)
 # Спрайт пули
