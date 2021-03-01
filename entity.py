@@ -46,6 +46,8 @@ class Entity(pygame.sprite.Sprite):
         # Проекции скорости
         self.vx = self.vy = 0
 
+        self.angle = 0
+
     def cut_sheet(self, sheet, columns, rows):
         """Разрезает спрайт лист на отдельные спрайты в словаре frames"""
         # Хитбокс размером с картинку спрайта
@@ -86,8 +88,8 @@ class Entity(pygame.sprite.Sprite):
     def rotate(self, image, target_pos):
         """Вычисляет угол поворота игрока относительно положения цели"""
         vector = target_pos[0] - self.rect.x, target_pos[1] - self.rect.y
-        angle = (180 / math.pi) * math.atan2(vector[0], vector[1]) - 90
-        image = pygame.transform.rotate(image, angle)
+        self.angle = (180 / math.pi) * math.atan2(vector[0], vector[1]) - 90
+        image = pygame.transform.rotate(image, self.angle)
         # Получает новый прямоугольник из картинки
         self.rect = image.get_rect(center=self.rect.center)
         return image

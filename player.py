@@ -1,5 +1,6 @@
 from entity import *
 import pygame
+import random
 
 
 class Player(Entity):
@@ -43,6 +44,8 @@ class Player(Entity):
         if buttons[0] and self.weapon == self.PISTOL:
             now = pygame.time.get_ticks()
             if now - self.last_shot > BULLET_RATE:
+                sounds['gunshot'].set_volume(VOLUME)
+                sounds['gunshot'].play()
                 self.state = self.PISTOL
                 self.last_shot = now
                 Bullet(self, pygame.mouse.get_pos(), player_bullets_group)

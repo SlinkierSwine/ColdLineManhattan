@@ -1,3 +1,5 @@
+import random
+
 import pygame
 from SETTINGS import *
 from camera import Camera
@@ -12,6 +14,7 @@ start_screen(screen, HEIGHT)
 start_time = pygame.time.get_ticks()
 
 running = True
+t = pygame.time.get_ticks()
 
 player = generate_level(level_map, player_image, enemy_image)
 for enemy in enemies_group:
@@ -44,6 +47,21 @@ while running:
     player.move()
     for enemy in enemies_group:
         enemy.move()
+        if enemy.state == enemy.WALKING:
+            now = pygame.time.get_ticks()
+            if now - enemy.time > 250:
+                enemy.time = now
+                sound = random.choice(sounds['footsteps'])
+                sound.set_volume(VOLUME)
+                sound.play()
+
+    if player.state == player.WALKING:
+        now = pygame.time.get_ticks()
+        if now - t > 250:
+            t = now
+            sound = random.choice(sounds['footsteps'])
+            sound.set_volume(VOLUME)
+            sound.play()
 
     screen.fill(pygame.Color(82, 0, 89))
 

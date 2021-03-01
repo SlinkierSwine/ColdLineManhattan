@@ -46,3 +46,7 @@ enemies_bullets_group = groups[6]
 level_map = map_data[0]
 level_map_img = map_data[1]
 level_map_rect = map_data[2]
+
+# Звуки
+VOLUME = 0.1
+sounds, music = load_sounds()

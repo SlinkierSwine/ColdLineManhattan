@@ -58,3 +58,16 @@ def pygame_inits():
     clock = pygame.time.Clock()
     SIZE = WIDTH, HEIGHT = pygame.display.get_window_size()
     return screen, clock, SIZE, WIDTH, HEIGHT
+
+
+def load_sounds():
+    pygame.mixer.init()
+    sounds = {
+        'gunshot': pygame.mixer.Sound(os.path.join('data', 'sounds', 'gunshot.wav')),
+        'footsteps': [pygame.mixer.Sound(os.path.join('data', 'sounds', 'footstep1.mp3')),
+                     pygame.mixer.Sound(os.path.join('data', 'sounds', 'footstep2.mp3'))]
+    }
+    music = {
+        'main theme': pygame.mixer.Sound(os.path.join('data', 'sounds', 'main theme.mp3'))
+    }
+    return sounds, music

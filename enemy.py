@@ -46,6 +46,7 @@ class Enemy(Entity):
         self.player_already_detected = False
         self.weapon = weapon
         self.last_shot = 0
+        self.time = pygame.time.get_ticks()
 
     def update(self, target_pos):
         """Изменяет текущий спрайт на следующий и поворачивает его на нужный угол"""
@@ -93,6 +94,7 @@ class Enemy(Entity):
                     if player_detected:
                         now = pygame.time.get_ticks()
                         if now - self.last_shot > BULLET_RATE + 500:
+                            sounds['gunshot'].play()
                             self.state = self.PISTOL
                             Bullet(self, self.player.hitbox.center, enemies_bullets_group)
                             self.last_shot = now
