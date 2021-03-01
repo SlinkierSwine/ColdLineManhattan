@@ -1,4 +1,5 @@
 from entity import *
+import pygame
 
 
 class Player(Entity):
@@ -11,11 +12,12 @@ class Player(Entity):
         super().__init__(player_group, bullet_image)
         self.cut_sheet(sheet, 5, 5)
         self.image = self.frames[self.state][self.cur_frame]
-        self.rect = self.rect.move(x * TILE_SIZE[0], y * TILE_SIZE[1])
+        self.rect = self.rect.move(x, y)
         # Хитбокс игрока
         self.hitbox.center = self.rect.center
         self.weapon = self.PISTOL
         self.bullets = []
+        self.last_shot = 0
 
     def get_keys(self):
         self.vx, self.vy = 0, 0
@@ -38,8 +40,12 @@ class Player(Entity):
         if self.vx != 0 and self.vy != 0:
             self.vx *= 0.7071
             self.vy *= 0.7071
-        if buttons[0] and self.weapon == self.HANDS:
-            self.state = self.PUNCH
+        if buttons[0] and self.weapon == self.PISTOL:
+            now = pygame.time.get_ticks()
+            if now - self.last_shot > BULLET_RATE:
+                self.state = self.PISTOL
+                self.last_shot = now
+                Bullet(self, self.bullet_image, pygame.mouse.get_pos(), player_bullets_group)
 
     def move(self):
         self.get_keys()

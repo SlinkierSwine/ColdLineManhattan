@@ -1,5 +1,5 @@
 import pygame
-from entity import Entity
+from entity import Entity, Bullet
 from SETTINGS import *
 
 
@@ -20,7 +20,7 @@ class Beam(pygame.sprite.Sprite):
             vel = vec(BEAM_SPEED, 0).rotate(-rot)
             self.rect.x += vel.x
             self.rect.y += vel.y
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, obstacles_group):
                 self.kill()
                 return False
             if pygame.sprite.spritecollideany(self, player_group):
@@ -36,7 +36,7 @@ class Enemy(Entity):
         # Спрайт моба
         self.cut_sheet(sheet, 5, 5)
         self.image = self.frames[self.state][self.cur_frame]
-        self.rect = self.rect.move(x * TILE_SIZE[0], y * TILE_SIZE[1])
+        self.rect = self.rect.move(x, y)
 
         # Хитбокс моба
         self.hitbox.center = self.rect.center
@@ -45,6 +45,25 @@ class Enemy(Entity):
         self.beam = Beam(self)
         self.player_already_detected = False
         self.weapon = weapon
+
+    def update(self, target_pos):
+        """Изменяет текущий спрайт на следующий и поворачивает его на нужный угол"""
+        if self.i == 3:
+            # Удар проигрывается сначала в одном направлении, потом обратно
+            if self.state == self.PUNCH:
+                if self.cur_frame < len(self.frames[self.PUNCH]) - 1:
+                    self.cur_frame = self.cur_frame + 1
+                else:
+                    self.state = self.IDLE
+                    self.cur_frame = 0
+            else:
+                self.cur_frame = (self.cur_frame + 1) % len(self.frames[self.state])
+            if self.player_already_detected:
+                self.image = self.rotate(self.frames[self.state][self.cur_frame], target_pos)
+            else:
+                self.image = self.frames[self.state][self.cur_frame]
+            self.i = 0
+        self.i += 1
 
     def change_velocity(self):
         vec = pygame.Vector2
@@ -72,7 +91,7 @@ class Enemy(Entity):
                 if player_detected is not None:
                     if player_detected:
                         self.state = self.PISTOL
-                        self.shoot(self.player.hitbox.center, enemies_bullets_group)
+                        Bullet(self, self.bullet_image, self.player.hitbox.center, enemies_bullets_group)
                     self.beam = Beam(self)
             self.change_velocity()
             self.state = self.WALKING

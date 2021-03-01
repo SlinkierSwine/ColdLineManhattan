@@ -58,8 +58,8 @@ class Entity(pygame.sprite.Sprite):
             for col in range(value):
                 if not self.frames.get(key, False):
                     self.frames[key] = []
-                # image = pygame.transform.scale(sheet.subsurface(pygame.Rect((self.rect.w * col, self.rect.h * ix), self.rect.size)), PLAYER_SIZE)
-                image = sheet.subsurface(pygame.Rect((self.rect.w * col, self.rect.h * ix), self.rect.size))
+                image = pygame.transform.scale(sheet.subsurface(pygame.Rect((self.rect.w * col, self.rect.h * ix), self.rect.size)), PLAYER_SIZE)
+                # image = sheet.subsurface(pygame.Rect((self.rect.w * col, self.rect.h * ix), self.rect.size))
                 self.frames[key].append(image)
             ix += 1
         # Удар проигрывается сначала в одном направлении, потом обратно
@@ -97,7 +97,7 @@ class Entity(pygame.sprite.Sprite):
     def collide_with_walls(self, direction):
         # Столкновения по х
         if direction == 'x':
-            hits = pygame.sprite.spritecollide(self, walls_group, False, collide_hitbox)
+            hits = pygame.sprite.spritecollide(self, obstacles_group, False, collide_hitbox)
             if hits:
                 if self.vx > 0:
                     self.hitbox.centerx = hits[0].rect.left - self.hitbox.width / 2
@@ -106,7 +106,7 @@ class Entity(pygame.sprite.Sprite):
                 self.vx = 0
         # Столкновения по у
         if direction == 'y':
-            hits = pygame.sprite.spritecollide(self, walls_group, False, collide_hitbox)
+            hits = pygame.sprite.spritecollide(self, obstacles_group, False, collide_hitbox)
             if hits:
                 if self.vy > 0:
                     self.hitbox.centery = hits[0].rect.top - self.hitbox.height / 2
@@ -116,14 +116,12 @@ class Entity(pygame.sprite.Sprite):
 
     def move(self):
         # Проверяем столкновения хитбокса, а затем присваеваем его координаты к игроку
-        self.hitbox.centerx += self.vx
-        self.collide_with_walls('x')
-        self.hitbox.centery += self.vy
-        self.collide_with_walls('y')
-        self.rect.center = self.hitbox.center
-
-    def shoot(self, target_pos, group):
-        bullet = Bullet(self, self.bullet_image, target_pos, group)
+        if self.state != self.DEATH:
+            self.hitbox.centerx += self.vx
+            self.collide_with_walls('x')
+            self.hitbox.centery += self.vy
+            self.collide_with_walls('y')
+            self.rect.center = self.hitbox.center
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -143,8 +141,10 @@ class Bullet(pygame.sprite.Sprite):
         else:
             vec = pygame.Vector2
             rot = (vec(self.target_pos) - vec(self.source.hitbox.center)).angle_to(vec(1, 0))
-            vel = vec(BEAM_SPEED, 0).rotate(-rot)
+            vel = vec(BULLET_SPEED, 0).rotate(-rot)
             self.rect.x += vel.x
             self.rect.y += vel.y
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, obstacles_group):
+                self.rect.x -= vel.x
+                self.rect.y -= vel.y
                 self.kill()
