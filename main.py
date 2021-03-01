@@ -92,6 +92,7 @@ def main():
         hits = pygame.sprite.groupcollide(player_group, enemies_bullets_group, False, True)
         if hits:
             running = False
+            game_over_screen(screen, WIDTH, HEIGHT)
             break
 
         if len(enemies_group) == 0:
@@ -136,7 +137,6 @@ def main():
 
         pygame.display.flip()
         clock.tick(FPS)
-    game_over_screen(screen, WIDTH, HEIGHT)
 
 
 if __name__ == '__main__':

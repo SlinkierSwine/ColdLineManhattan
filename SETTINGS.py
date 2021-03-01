@@ -2,7 +2,6 @@ import pygame
 from modules.loads import *
 
 
-# screen = pygame.display.set_mode(SIZE)
 # Размер (высота и ширина) - это размер экрана, если включен полноэкранный режим
 screen, clock, SIZE, WIDTH, HEIGHT = pygame_inits()
 

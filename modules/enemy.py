@@ -1,5 +1,5 @@
 import pygame
-from entity import Entity, Bullet
+from modules.entity import Entity, Bullet
 from SETTINGS import *
 
 

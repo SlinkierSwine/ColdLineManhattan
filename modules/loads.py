@@ -54,6 +54,8 @@ def init_groups():
 
 
 def pygame_inits():
+    icon = pygame.image.load(os.path.join('data', 'imgs', 'ColdLineManhattan.ico'))
+    pygame.display.set_icon(icon)
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     clock = pygame.time.Clock()
     SIZE = WIDTH, HEIGHT = pygame.display.get_window_size()

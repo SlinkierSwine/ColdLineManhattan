@@ -1,9 +1,9 @@
 import pygame
 import sys
-from player import Player
-from obstacles import Obstacle
-from enemy import Enemy
-from loads import load_image
+from modules.player import Player
+from modules.obstacles import Obstacle
+from modules.enemy import Enemy
+from modules.loads import load_image
 from SETTINGS import *
 
 
@@ -31,7 +31,7 @@ def start_screen(screen, height):
     """Показывает начальный экран"""
     music['main theme'].set_volume(VOLUME)
     music['main theme'].play()
-    bg = load_image('background', 'background.jpg')
+    bg = pygame.transform.scale(load_image('background', 'background.jpg'), SIZE)
 
     font = pygame.font.Font(None, 50)
     # Текст "START"

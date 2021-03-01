@@ -1,4 +1,4 @@
-from entity import *
+from modules.entity import *
 import pygame
 import random
 
