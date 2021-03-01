@@ -1,5 +1,5 @@
 import pygame
-from loads import *
+from modules.loads import *
 
 
 # screen = pygame.display.set_mode(SIZE)
