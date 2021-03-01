@@ -22,7 +22,7 @@ class Entity(pygame.sprite.Sprite):
     RIFLE = 7
     SHOTGUN = 8
 
-    def __init__(self, group, bullet_image):
+    def __init__(self, group):
         # Текущее состояние
         super().__init__(group, all_sprites)
         self.state = self.IDLE
@@ -40,8 +40,6 @@ class Entity(pygame.sprite.Sprite):
         self.cur_frame = 0
 
         self.hitbox = pygame.Rect(0, 0, *HITBOX_SIZE)
-
-        self.bullet_image = bullet_image
 
         # Текущая итерация главного цикла
         self.i = 1
@@ -125,10 +123,10 @@ class Entity(pygame.sprite.Sprite):
 
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, source, image, target_pos, group):
+    def __init__(self, source, target_pos, group):
         super().__init__(group, all_sprites)
         self.source = source
-        self.image = pygame.transform.scale(image, BULLET_SIZE)
+        self.image = pygame.transform.scale(bullet_image, BULLET_SIZE)
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(*self.source.hitbox.center)
         self.spawn_time = pygame.time.get_ticks()

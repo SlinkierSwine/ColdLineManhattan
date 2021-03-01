@@ -3,13 +3,13 @@ import pygame
 
 
 class Player(Entity):
-    def __init__(self, sheet, x, y, bullet_image):
+    def __init__(self, sheet, x, y):
         """
         :param sheet: image (изображение спрайтов)
         :param x: float (первоначальные координаты)
         :param y: float (первоначальные координаты)
         """
-        super().__init__(player_group, bullet_image)
+        super().__init__(player_group)
         self.cut_sheet(sheet, 5, 5)
         self.image = self.frames[self.state][self.cur_frame]
         self.rect = self.rect.move(x, y)
@@ -45,7 +45,7 @@ class Player(Entity):
             if now - self.last_shot > BULLET_RATE:
                 self.state = self.PISTOL
                 self.last_shot = now
-                Bullet(self, self.bullet_image, pygame.mouse.get_pos(), player_bullets_group)
+                Bullet(self, pygame.mouse.get_pos(), player_bullets_group)
 
     def move(self):
         self.get_keys()

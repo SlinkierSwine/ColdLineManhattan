@@ -30,8 +30,8 @@ class Beam(pygame.sprite.Sprite):
 
 
 class Enemy(Entity):
-    def __init__(self, sheet, x, y, player, weapon, bullet_image):
-        super().__init__(enemies_group, bullet_image)
+    def __init__(self, sheet, x, y, player, weapon):
+        super().__init__(enemies_group)
 
         # Спрайт моба
         self.cut_sheet(sheet, 5, 5)
@@ -45,6 +45,7 @@ class Enemy(Entity):
         self.beam = Beam(self)
         self.player_already_detected = False
         self.weapon = weapon
+        self.last_shot = 0
 
     def update(self, target_pos):
         """Изменяет текущий спрайт на следующий и поворачивает его на нужный угол"""
@@ -90,8 +91,11 @@ class Enemy(Entity):
                 player_detected = self.beam.detect_player()
                 if player_detected is not None:
                     if player_detected:
-                        self.state = self.PISTOL
-                        Bullet(self, self.bullet_image, self.player.hitbox.center, enemies_bullets_group)
+                        now = pygame.time.get_ticks()
+                        if now - self.last_shot > BULLET_RATE + 500:
+                            self.state = self.PISTOL
+                            Bullet(self, self.player.hitbox.center, enemies_bullets_group)
+                            self.last_shot = now
                     self.beam = Beam(self)
             self.change_velocity()
             self.state = self.WALKING

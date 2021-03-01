@@ -60,32 +60,51 @@ def game_over_screen(screen, width, height):
     _over_rect.x = (width - _over_rect.width) // 2
     _over_rect.y = (height - _over_rect.height) // 2
 
-    _over_shadow = font.render('START', 1, pygame.Color('black'))
-    _over_shadow_rect = _over_shadow.get_rect()
-    _over_shadow_rect.x = _over_rect.x + 2
-    _over_shadow_rect.y = _over_rect.y + 2
-
-    screen.blit(_over_shadow, _over_shadow_rect)
     screen.blit(_over, _over_rect)
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            # Если нажали на кнопку - запустить игру
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 return
             pygame.display.flip()
 
 
-def generate_level(level_map, player_image, bullet_image, enemy_image):
+def win_screen(screen, width, height, time):
+    screen.fill((0, 0, 0))
+    font = pygame.font.Font(None, 100)
+    # Текст "Game over"
+    _over = font.render('YOU WON!', 1, pygame.Color('white'))
+    _over_rect = _over.get_rect()
+    _over_rect.x = (width - _over_rect.width) // 2
+    _over_rect.y = (height - _over_rect.height) // 2
+
+    _time = font.render(f'Your time: {round(time / 1000, 2)}s', 1, pygame.Color('white'))
+    _time_rect = _time.get_rect()
+    _time_rect.x = (width - _time_rect.width) // 2
+    _time_rect.y = (height - _time_rect.height) // 2 + 100
+
+    screen.blit(_over, _over_rect)
+    screen.blit(_time, _time_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                return
+            pygame.display.flip()
+
+
+def generate_level(level_map, player_image, enemy_image):
     """Генерирует уровень, в котором w - стена, . - пустое пространство(пол), @ - игрок"""
     player = None
     for tile_object in level_map.tmxdata.objects:
         if tile_object.name == 'Player':
-            player = Player(player_image, tile_object.x, tile_object.y, bullet_image)
+            player = Player(player_image, tile_object.x, tile_object.y)
         if tile_object.name == 'Obstacle':
             Obstacle(tile_object.x, tile_object.y, tile_object.width, tile_object.height)
         if tile_object.name == 'Mob':
-            Enemy(enemy_image, tile_object.x, tile_object.y, player, Enemy.PISTOL, bullet_image)
+            Enemy(enemy_image, tile_object.x, tile_object.y, player, Enemy.PISTOL)
     return player

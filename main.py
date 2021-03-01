@@ -9,10 +9,11 @@ pygame.key.set_repeat(1, 25)
 pygame.display.set_caption('ColdLine Manhattan')
 
 start_screen(screen, HEIGHT)
+start_time = pygame.time.get_ticks()
 
 running = True
 
-player = generate_level(level_map, player_image, bullet_image, enemy_image)
+player = generate_level(level_map, player_image, enemy_image)
 for enemy in enemies_group:
     enemy.player = player
 camera = Camera()
@@ -65,11 +66,17 @@ while running:
     for hit in hits:
         hit.kill()
 
-    hits = pygame.sprite.groupcollide(player_group, enemies_bullets_group, False, True)
-    if hits:
-        player.state = player.DEATH
+    # hits = pygame.sprite.groupcollide(player_group, enemies_bullets_group, False, True)
+    # if hits:
+    #     player.state = player.DEATH
+    #     running = False
+    #     game_over_screen(screen, WIDTH, HEIGHT)
+
+    if len(enemies_group) == 0:
         running = False
-        game_over_screen(screen, WIDTH, HEIGHT)
+        finish_time = pygame.time.get_ticks()
+        all_time = finish_time - start_time
+        win_screen(screen, WIDTH, HEIGHT, all_time)
 
     # Отрисовка спрайтов
     player_group.draw(screen)
@@ -94,6 +101,21 @@ while running:
     fps = font.render(f'FPS: {int(clock.get_fps())}', 1, pygame.Color('red'))
     fps_rect = fps.get_rect()
     screen.blit(fps, fps_rect)
+
+    # Время
+    font = pygame.font.Font(None, 75)
+    now = pygame.time.get_ticks()
+
+    time = font.render(f'Time: {round((now - start_time) / 1000, 1)}s', 1, pygame.Color('white'))
+    time_rect = time.get_rect()
+    time_rect = time_rect.move(WIDTH - time_rect.width - 20, 10)
+
+    time_shadow = font.render(f'Time: {round((now - start_time) / 1000, 1)}s', 1, pygame.Color('black'))
+    time_shadow_rect = time_shadow.get_rect()
+    time_shadow_rect = time_shadow_rect.move(time_rect.x + 2, time_rect.y + 2)
+
+    screen.blit(time_shadow, time_shadow_rect)
+    screen.blit(time, time_rect)
 
     pygame.display.flip()
     clock.tick(FPS)
